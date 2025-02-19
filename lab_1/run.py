@@ -8,7 +8,7 @@ class Methods:
     num_1 = 1
 
     @classmethod
-    def get_positive_binary(cls, decimal_number: int) -> str:
+    def get_positive_binary_number(cls, decimal_number: int) -> str:
         if decimal_number < 0:
             raise ValueError("Только для положительных чисел")
         binary = ""
@@ -20,13 +20,13 @@ class Methods:
         return '0' + binary
 
     @classmethod
-    def get_negative_binary(cls, decimal_number: int) -> str:
+    def get_negative_binary_number(cls, decimal_number: int) -> str:
         abs_number = abs(decimal_number)
-        positive_binary = cls.get_positive_binary(abs_number)[1:]
+        positive_binary = cls.get_positive_binary_number(abs_number)[1:]
         return '1' + positive_binary.zfill(cls.MAX_BITS)
 
     @staticmethod
-    def add_1(binary: str) -> str:
+    def add_one(binary: str) -> str:
         carry = 1
         result = []
         for bit in reversed(binary):
@@ -46,11 +46,11 @@ class Methods:
     def convert_to_decimal(cls, binary_number: str) -> int:
         if binary_number[0] == '1':
             inverted = ''.join('1' if b == '0' else '0' for b in binary_number[1:])
-            return -cls.binary_to_decimal(inverted) - 1
-        return cls.binary_to_decimal(binary_number)
+            return -cls.binary_to_decimal_number(inverted) - 1
+        return cls.binary_to_decimal_number(binary_number)
 
     @staticmethod
-    def binary_to_decimal(binary: str) -> int:
+    def binary_to_decimal_number(binary: str) -> int:
         decimal = 0
         length = len(binary)
         for i in range(length):
@@ -59,15 +59,15 @@ class Methods:
         return decimal
 
     @classmethod
-    def convert_to_binary(cls, decimal_number: int) -> str:
+    def convert_to_binary_number(cls, decimal_number: int) -> str:
         if decimal_number >= 0:
-            return cls.get_positive_binary(decimal_number)
-        return cls.get_negative_binary(decimal_number)
+            return cls.get_positive_binary_number(decimal_number)
+        return cls.get_negative_binary_number(decimal_number)
 
     @classmethod
     def direct_sum_of_binary_numbers(cls, num1: int, num2: int) -> str:
-        bin1 = cls.convert_to_binary(num1).zfill(cls.TOTAL_BITS)
-        bin2 = cls.convert_to_binary(num2).zfill(cls.TOTAL_BITS)
+        bin1 = cls.convert_to_binary_number(num1).zfill(cls.TOTAL_BITS)
+        bin2 = cls.convert_to_binary_number(num2).zfill(cls.TOTAL_BITS)
 
         result = []
         carry = 0
@@ -83,8 +83,8 @@ class Methods:
     @classmethod
     def convert_to_reverse_binary(cls, decimal_number: int) -> str:
         if decimal_number >= 0:
-            return cls.get_positive_binary(decimal_number)
-        positive = cls.get_positive_binary(abs(decimal_number))
+            return cls.get_positive_binary_number(decimal_number)
+        positive = cls.get_positive_binary_number(abs(decimal_number))
         inverted = ''.join('1' if b == '0' else '0' for b in positive[1:])
         return '1' + inverted
 
@@ -94,7 +94,7 @@ class Methods:
             return cls.convert_to_reverse_binary(decimal_number)
         else:
             binary_number = cls.convert_to_reverse_binary(decimal_number)
-            binary_number = cls.add_1(binary_number)
+            binary_number = cls.add_one(binary_number)
             return binary_number
 
     @classmethod
@@ -280,26 +280,26 @@ def main():
     print("Сложение:")
     num1 = int(input("Ввод числа №1: "))
     print(f"Число введено: {num1}")
-    print(f"Прямой код: {method.convert_to_binary(num1)}")
+    print(f"Прямой код: {method.convert_to_binary_number(num1)}")
     print(f"Обратный код: {method.convert_to_reverse_binary(num1)}")
     print(f"Дополнительный код: {method.convert_to_additional_binary(num1)}")
 
     num2 = int(input("Ввод числа №2: "))
     print(f"Число введено: {num2}")
-    print(f"Прямой код: {method.convert_to_binary(num2)}")
+    print(f"Прямой код: {method.convert_to_binary_number(num2)}")
     print(f"Обратный код: {method.convert_to_reverse_binary(num2)}")
     print(f"Дополнительный код: {method.convert_to_additional_binary(num2)}")
 
     result = method.sum_of_additional_binary(num1, num2)
     print(f"Результат: {method.convert_to_decimal(result)}")
-    print(f"Прямой код: {method.convert_to_binary(method.convert_to_decimal(result))}")
+    print(f"Прямой код: {method.convert_to_binary_number(method.convert_to_decimal(result))}")
     print(f"Обратный код: {method.convert_to_reverse_binary(method.convert_to_decimal(result))}")
     print(f"Дополнительный код: {method.convert_to_additional_binary(method.convert_to_decimal(result))}")
 
     print("\nВычитание:")
     result = method.subtract_of_additional_binary(num1, num2)
     print(f"Результат: {method.convert_to_decimal(result)}")
-    print(f"Прямой код: {method.convert_to_binary(method.convert_to_decimal(result))}")
+    print(f"Прямой код: {method.convert_to_binary_number(method.convert_to_decimal(result))}")
     print(f"Обратный код: {method.convert_to_reverse_binary(method.convert_to_decimal(result))}")
     print(f"Дополнительный код: {method.convert_to_additional_binary(method.convert_to_decimal(result))}")
 
@@ -308,7 +308,7 @@ def main():
     print(f"Результат: {result}")
 
     print("\nДеление:")
-    result = method.div_of_binary_numbers(method.convert_to_binary(num1), method.convert_to_binary(num2))
+    result = method.div_of_binary_numbers(method.convert_to_binary_number(num1), method.convert_to_binary_number(num2))
     print(f"Результат: {result}")
 
     print("\nСложение чисел с плавающей точкой:")
