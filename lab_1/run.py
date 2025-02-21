@@ -131,24 +131,12 @@ class Methods:
             return -result
         return result
 
-    @classmethod
-    def float_to_binary_fraction(cls, fraction: float) -> str:
-        binary_fraction = ""
-        while fraction != 0 and len(binary_fraction) < cls.TOTAL_BITS:
-            fraction *= 2
-            if fraction >= 1:
-                binary_fraction += "1"
-                fraction -= 1
-            else:
-                binary_fraction += "0"
-        return binary_fraction
-
     @staticmethod
     def print_ieee754(binary_float_one: str):
         print(binary_float_one[0:1], " ", binary_float_one[1:9], " ", binary_float_one[9:33])
 
     @staticmethod
-    def convert_float_to_binary(f: float) -> str:
+    def convert_float_to_binary_numbers(f: float) -> str:
         if f == 0.0:
             return '0' * 32
 
@@ -185,12 +173,14 @@ class Methods:
         return ieee754_bits
 
     @classmethod
-    def sum_of_floats(cls, float_one: float, float_two: float) -> float:
-        binary_one = cls.convert_float_to_binary(float_one)
-        binary_two = cls.convert_float_to_binary(float_two)
+    def sum_of_floats_numbers(cls, float_one: float, float_two: float) -> float:
+        binary_one = cls.convert_float_to_binary_numbers(float_one)
+        binary_two = cls.convert_float_to_binary_numbers(float_two)
 
-        sign1, exponent1, mantissa1 = binary_one[cls.num_0], binary_one[cls.num_1:cls.num_9], binary_one[cls.num_1:cls.num_32]
-        sign2, exponent2, mantissa2 = binary_two[cls.num_0], binary_two[cls.num_1:cls.num_9], binary_two[cls.num_9:cls.num_32]
+        sign1, exponent1, mantissa1 = binary_one[cls.num_0], binary_one[cls.num_1:cls.num_9], binary_one[
+                                                                                              cls.num_1:cls.num_32]
+        sign2, exponent2, mantissa2 = binary_two[cls.num_0], binary_two[cls.num_1:cls.num_9], binary_two[
+                                                                                              cls.num_9:cls.num_32]
 
         exp1 = int(exponent1, 2) - 127
         exp2 = int(exponent2, 2) - 127
@@ -271,7 +261,7 @@ class Methods:
             raise ValueError("Деление на ноль!")
 
         result = round(num1 / num2, 5)
-        return cls.convert_float_to_binary(result)
+        return cls.convert_float_to_binary_numbers(result)
 
 
 def main():
@@ -312,11 +302,12 @@ def main():
     print(f"Результат: {result}")
 
     print("\nСложение чисел с плавающей точкой:")
-    float1 = method.convert_float_to_binary(float(input("Ввод числа №1: ")))
-    float2 = method.convert_float_to_binary(float(input("Ввод числа №2: ")))
+    float1 = method.convert_float_to_binary_numbers(float(input("Ввод числа №1: ")))
+    float2 = method.convert_float_to_binary_numbers(float(input("Ввод числа №2: ")))
     method.print_ieee754(float1)
     method.print_ieee754(float2)
-    result = method.sum_of_floats(method.convert_binary_to_float(float1), method.convert_binary_to_float(float2))
+    result = method.sum_of_floats_numbers(method.convert_binary_to_float(float1),
+                                          method.convert_binary_to_float(float2))
     print(f"Результат: {result}")
 
 
