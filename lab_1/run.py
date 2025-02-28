@@ -254,15 +254,100 @@ class Methods:
 
     @classmethod
     def div_of_binary_numbers(cls, binary_num_one: str, binary_num_two: str) -> str:
-        num1 = cls.convert_to_decimal(binary_num_one)
-        num2 = cls.convert_to_decimal(binary_num_two)
+        def binary_compare(a: str, b: str) -> int:
+            a = a.lstrip('0') or '0'
+            b = b.lstrip('0') or '0'
+            if len(a) > len(b): return 1
+            if len(a) < len(b): return -1
+            return 1 if a > b else 0 if a == b else -1
 
-        if num2 == 0:
-            raise ValueError("Деление на ноль!")
+        def binary_subtract(a: str, b: str) -> str:
+            max_len = max(len(a), len(b))
+            a = a.zfill(max_len)
+            b = b.zfill(max_len)
+            result = []
+            borrow = 0
+            for i in range(max_len - 1, -1, -1):
+                a_bit = int(a[i])
+                b_bit = int(b[i])
+                a_bit -= borrow
+                if a_bit < b_bit:
+                    a_bit += 2
+                    borrow = 1
+                else:
+                    borrow = 0
+                result.append(str(a_bit - b_bit))
+            res = ''.join(reversed(result)).lstrip('0') or '0'
+            return res
 
-        result = round(num1 / num2, 5)
-        return cls.convert_float_to_binary_numbers(result)
+        if all(c == '0' for c in binary_num_two):
+            raise ZeroDivisionError("Деление на ноль")
 
+        sign = ''
+        if (binary_num_one[0] == '-' and binary_num_two[0] != '-') or \
+                (binary_num_one[0] != '-' and binary_num_two[0] == '-'):
+            sign = '-'
+
+        dividend = binary_num_one.lstrip('-')
+        divisor = binary_num_two.lstrip('-')
+
+        quotient = ''
+        remainder = ''
+        precision = 5
+
+        for bit in dividend:
+            remainder += bit
+            cmp = binary_compare(remainder, divisor)
+            if cmp >= 0:
+                quotient += '1'
+                remainder = binary_subtract(remainder, divisor)
+            else:
+                quotient += '0'
+
+        if remainder != '0' and precision > 0:
+            quotient += '.'
+            for _ in range(precision):
+                remainder += '0'
+                cmp = binary_compare(remainder, divisor)
+                if cmp >= 0:
+                    quotient += '1'
+                    remainder = binary_subtract(remainder, divisor)
+                else:
+                    quotient += '0'
+
+        quotient = quotient.lstrip('0') or '0'
+        if '.' in quotient:
+            quotient = quotient.rstrip('0').rstrip('.') or '0'
+
+        return sign + quotient
+
+    @classmethod
+    def divide(cls, first: int, second: int) -> float:
+        if second == 0:
+            raise ZeroDivisionError("Деление на ноль")
+
+        bin1 = cls.convert_to_binary_number(abs(first))
+        bin2 = cls.convert_to_binary_number(abs(second))
+
+        binary_result = cls.div_of_binary_numbers(bin1, bin2)
+
+        if '.' in binary_result:
+            integer_part, fractional_part = binary_result.split('.')
+        else:
+            integer_part = binary_result
+            fractional_part = '0'
+
+        integer = cls.binary_to_decimal_number(integer_part)
+
+        fractional = 0
+        for i, bit in enumerate(fractional_part, 1):
+            fractional += int(bit) * (2 ** -i)
+
+        result = integer + fractional
+
+        if (first < 0) ^ (second < 0):
+            return -result
+        return result
 
 def main():
     method = Methods()
@@ -280,25 +365,25 @@ def main():
     print(f"Обратный код: {method.convert_to_reverse_binary(num2)}")
     print(f"Дополнительный код: {method.convert_to_additional_binary(num2)}")
 
-    result = method.sum_of_additional_binary(num1, num2)
-    print(f"Результат: {method.convert_to_decimal(result)}")
-    print(f"Прямой код: {method.convert_to_binary_number(method.convert_to_decimal(result))}")
-    print(f"Обратный код: {method.convert_to_reverse_binary(method.convert_to_decimal(result))}")
-    print(f"Дополнительный код: {method.convert_to_additional_binary(method.convert_to_decimal(result))}")
-
-    print("\nВычитание:")
-    result = method.subtract_of_additional_binary(num1, num2)
-    print(f"Результат: {method.convert_to_decimal(result)}")
-    print(f"Прямой код: {method.convert_to_binary_number(method.convert_to_decimal(result))}")
-    print(f"Обратный код: {method.convert_to_reverse_binary(method.convert_to_decimal(result))}")
-    print(f"Дополнительный код: {method.convert_to_additional_binary(method.convert_to_decimal(result))}")
-
-    print("\nУмножение:")
-    result = method.multi_of_binary_numbers(num1, num2)
-    print(f"Результат: {result}")
+    # result = method.sum_of_additional_binary(num1, num2)
+    # print(f"Результат: {method.convert_to_decimal(result)}")
+    # print(f"Прямой код: {method.convert_to_binary_number(method.convert_to_decimal(result))}")
+    # print(f"Обратный код: {method.convert_to_reverse_binary(method.convert_to_decimal(result))}")
+    # print(f"Дополнительный код: {method.convert_to_additional_binary(method.convert_to_decimal(result))}")
+    #
+    # print("\nВычитание:")
+    # result = method.subtract_of_additional_binary(num1, num2)
+    # print(f"Результат: {method.convert_to_decimal(result)}")
+    # print(f"Прямой код: {method.convert_to_binary_number(method.convert_to_decimal(result))}")
+    # print(f"Обратный код: {method.convert_to_reverse_binary(method.convert_to_decimal(result))}")
+    # print(f"Дополнительный код: {method.convert_to_additional_binary(method.convert_to_decimal(result))}")
+    #
+    # print("\nУмножение:")
+    # result = method.multi_of_binary_numbers(num1, num2)
+    # print(f"Результат: {result}")
 
     print("\nДеление:")
-    result = method.div_of_binary_numbers(method.convert_to_binary_number(num1), method.convert_to_binary_number(num2))
+    result = method.divide(num1,num2)
     print(f"Результат: {result}")
 
     print("\nСложение чисел с плавающей точкой:")
@@ -314,3 +399,25 @@ def main():
 if __name__ == '__main__':
     main()
 # [name_of_task] Added sum_of_binary_floats
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
