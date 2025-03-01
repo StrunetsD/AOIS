@@ -3,21 +3,19 @@ class Methods:
     MAX_BITS = 31
     BIN_127 = '01111111'
     num_0 = 0
+    num_1 = 1
     num_9 = 9
     num_32 = 32
-    num_1 = 1
 
     @classmethod
     def get_positive_binary_number(cls, decimal_number: int) -> str:
         if decimal_number < 0:
             raise ValueError("Только для положительных чисел")
         binary = ""
-        num = decimal_number
-        while num > 0:
-            binary = str(num % 2) + binary
-            num = num // 2
-        binary = binary.zfill(cls.MAX_BITS)
-        return '0' + binary
+        while decimal_number > 0:
+            binary = str(decimal_number % 2) + binary
+            decimal_number //= 2
+        return '0' + binary.zfill(cls.MAX_BITS)
 
     @classmethod
     def get_negative_binary_number(cls, decimal_number: int) -> str:
@@ -30,10 +28,9 @@ class Methods:
         carry = 1
         result = []
         for bit in reversed(binary):
-            if bit == '1' and carry == 1:
+            if bit == '1' and carry:
                 result.append('0')
-                carry = 1
-            elif bit == '0' and carry == 1:
+            elif bit == '0' and carry:
                 result.append('1')
                 carry = 0
             else:
@@ -51,34 +48,26 @@ class Methods:
 
     @staticmethod
     def binary_to_decimal_number(binary: str) -> int:
-        decimal = 0
-        length = len(binary)
-        for i in range(length):
-            if binary[i] == '1':
-                decimal += 2 ** (length - i - 1)
+        decimal = sum(int(bit) * (2 ** idx) for idx, bit in enumerate(reversed(binary)))
         return decimal
 
     @classmethod
     def convert_to_binary_number(cls, decimal_number: int) -> str:
-        if decimal_number >= 0:
-            return cls.get_positive_binary_number(decimal_number)
-        return cls.get_negative_binary_number(decimal_number)
+        return cls.get_positive_binary_number(
+            decimal_number) if decimal_number >= 0 else cls.get_negative_binary_number(decimal_number)
 
     @classmethod
     def direct_sum_of_binary_numbers(cls, num1: int, num2: int) -> str:
         bin1 = cls.convert_to_binary_number(num1).zfill(cls.TOTAL_BITS)
         bin2 = cls.convert_to_binary_number(num2).zfill(cls.TOTAL_BITS)
-
-        result = []
-        carry = 0
+        result, carry = [], 0
 
         for i in range(cls.TOTAL_BITS - 1, -1, -1):
             sum_bit = int(bin1[i]) + int(bin2[i]) + carry
             result.append(str(sum_bit % 2))
             carry = sum_bit // 2
 
-        result = ''.join(reversed(result))
-        return result[-cls.TOTAL_BITS:]
+        return ''.join(reversed(result))
 
     @classmethod
     def convert_to_reverse_binary(cls, decimal_number: int) -> str:
@@ -89,47 +78,40 @@ class Methods:
         return '1' + inverted
 
     @classmethod
-    def convert_to_additional_binary(cls, decimal_number: int):
+    def convert_to_additional_binary(cls, decimal_number: int) -> str:
         if decimal_number > 0:
             return cls.convert_to_reverse_binary(decimal_number)
-        else:
-            binary_number = cls.convert_to_reverse_binary(decimal_number)
-            binary_number = cls.add_one(binary_number)
-            return binary_number
+        binary_number = cls.convert_to_reverse_binary(decimal_number)
+        return cls.add_one(binary_number)
 
     @classmethod
     def sum_of_additional_binary(cls, num1: int, num2: int) -> str:
         bin1 = cls.convert_to_additional_binary(num1)
         bin2 = cls.convert_to_additional_binary(num2)
-
         carry = 0
         result = []
+
         for i in range(cls.TOTAL_BITS - 1, -1, -1):
             total = int(bin1[i]) + int(bin2[i]) + carry
             result.append(str(total % 2))
             carry = total // 2
 
-        result = ''.join(reversed(result))
-        return result[-cls.TOTAL_BITS:]
+        return ''.join(reversed(result))
 
     @classmethod
     def subtract_of_additional_binary(cls, number1: int, number2: int) -> str:
-        negative_num2 = -number2
-        return cls.sum_of_additional_binary(number1, negative_num2)
+        return cls.sum_of_additional_binary(number1, -number2)
 
     @classmethod
     def multi_of_binary_numbers(cls, a: int, b: int) -> int:
         result = 0
-        a_abs = abs(a)
-        b_abs = abs(b)
+        a_abs, b_abs = abs(a), abs(b)
 
         for i in range(cls.TOTAL_BITS):
             if (b_abs >> i) & 1:
                 result += a_abs << i
 
-        if (a < 0) ^ (b < 0):
-            return -result
-        return result
+        return -result if (a < 0) ^ (b < 0) else result
 
     @staticmethod
     def print_ieee754(binary_float_one: str):
@@ -142,26 +124,20 @@ class Methods:
 
         sign_bit = '0' if f >= 0 else '1'
         f = abs(f)
+        exponent, mantissa = 0, ''
 
         if f >= 1.0:
-            exponent = 0
             while f >= 2.0:
                 f /= 2.0
                 exponent += 1
         else:
-            exponent = 0
             while f < 1.0:
                 f *= 2.0
                 exponent -= 1
 
-        exponent_bias = exponent + 127
-        if exponent_bias < 0 or exponent_bias > 255:
-            raise ValueError("Число выходит за пределы диапазона IEEE 754 (32 бита)")
-
-        exponent_bits = f"{exponent_bias:08b}"
-
+        exponent_bits = f"{exponent + 127:08b}"
         f -= 1.0
-        mantissa = ''
+
         for _ in range(23):
             f *= 2.0
             bit = '1' if f >= 1.0 else '0'
@@ -169,37 +145,45 @@ class Methods:
             if f >= 1.0:
                 f -= 1.0
 
-        ieee754_bits = sign_bit + exponent_bits + mantissa
-        return ieee754_bits
+        return sign_bit + exponent_bits + mantissa
 
     @classmethod
-    def sum_of_floats_numbers(cls, float_one: float, float_two: float) -> float:
+    def sum_of_floats_numbers(cls, float_one: float, float_two: float) -> str:
         binary_one = cls.convert_float_to_binary_numbers(float_one)
         binary_two = cls.convert_float_to_binary_numbers(float_two)
 
-        sign1, exponent1, mantissa1 = binary_one[cls.num_0], binary_one[cls.num_1:cls.num_9], binary_one[
-                                                                                              cls.num_1:cls.num_32]
-        sign2, exponent2, mantissa2 = binary_two[cls.num_0], binary_two[cls.num_1:cls.num_9], binary_two[
-                                                                                              cls.num_9:cls.num_32]
+        return cls.process_float_sum(binary_one, binary_two)
+
+    @classmethod
+    def process_float_sum(cls, binary_one: str, binary_two: str) -> str:
+        sign1, exponent1, mantissa1 = binary_one[cls.num_0], binary_one[cls.num_1:cls.num_9], binary_one[cls.num_9:cls.num_32]
+        sign2, exponent2, mantissa2 = binary_two[cls.num_0], binary_two[cls.num_1:cls.num_9], binary_two[cls.num_9:cls.num_32]
 
         exp1 = int(exponent1, 2) - 127
         exp2 = int(exponent2, 2) - 127
 
-        if exp1 != exp2:
-            if exp1 > exp2:
-                shift = exp1 - exp2
-                mantissa2 = '1' + mantissa2
-                mantissa2 = mantissa2[:-shift] if shift <= len(mantissa2) else '0'
-                exp2 = exp1
-            else:
-                shift = exp2 - exp1
-                mantissa1 = '1' + mantissa1
-                mantissa1 = mantissa1[:-shift] if shift <= len(mantissa1) else '0'
-                exp1 = exp2
-
         mantissa1_int = int('1' + mantissa1, 2)
         mantissa2_int = int('1' + mantissa2, 2)
 
+        if exp1 != exp2:
+            mantissa1_int, mantissa2_int, exp1, exp2 = cls.align_exponents(mantissa1_int, mantissa2_int, exp1, exp2)
+
+        return cls.calculate_sum(mantissa1_int, mantissa2_int, sign1, sign2, exp1)
+
+    @classmethod
+    def align_exponents(cls, mantissa1_int: int, mantissa2_int: int, exp1: int, exp2: int):
+        if exp1 > exp2:
+            shift = exp1 - exp2
+            mantissa2_int = mantissa2_int >> shift
+            exp2 = exp1
+        else:
+            shift = exp2 - exp1
+            mantissa1_int = mantissa1_int >> shift
+            exp1 = exp2
+        return mantissa1_int, mantissa2_int, exp1, exp2
+
+    @classmethod
+    def calculate_sum(cls, mantissa1_int: int, mantissa2_int: int, sign1: str, sign2: str, exp1: int) -> str:
         if sign1 == sign2:
             mantissa_sum = mantissa1_int + mantissa2_int
             result_sign = sign1
@@ -212,8 +196,12 @@ class Methods:
                 result_sign = sign2
 
         if mantissa_sum == 0:
-            return 0.0
+            return '0' * 32
 
+        return cls.normalize_sum(mantissa_sum, result_sign, exp1)
+
+    @classmethod
+    def normalize_sum(cls, mantissa_sum: int, result_sign: str, exp1: int) -> str:
         leading_one_pos = mantissa_sum.bit_length()
 
         if leading_one_pos > 24:
@@ -225,61 +213,16 @@ class Methods:
             mantissa_sum <<= shift
             exp1 -= shift
 
-        mantissa_sum_bin = f"{mantissa_sum:024b}"
-        mantissa_sum_bin = mantissa_sum_bin[1:].ljust(cls.TOTAL_BITS, '0')[:cls.TOTAL_BITS]
-
         exponent_sum = exp1 + 127
-        if exponent_sum > 255:
+        if exponent_sum > 255 or exponent_sum < 0:
             raise OverflowError("Переполнение экспоненты")
-        elif exponent_sum < 0:
-            raise OverflowError("Антипереполнение экспоненты")
 
+        mantissa_sum_bin = f"{mantissa_sum:023b}".zfill(23)
         exponent_sum_bin = f"{exponent_sum:08b}"
-        binary_sum = result_sign + exponent_sum_bin + mantissa_sum_bin
-        return cls.convert_binary_to_float(binary_sum)
-
-    @classmethod
-    def convert_binary_to_float(cls, binary: str) -> float:
-        sign_bit = int(binary[cls.num_0])
-        exponent_bits = binary[cls.num_1:cls.num_9]
-        mantissa_bits = binary[cls.num_9:cls.num_32]
-
-        sign = (-1) ** sign_bit
-        exponent = int(exponent_bits, 2) - 127
-        mantissa = 1.0
-        for i, bit in enumerate(mantissa_bits):
-            mantissa += int(bit) * (2 ** -(i + 1))
-
-        return sign * mantissa * (2 ** exponent)
+        return result_sign + exponent_sum_bin + mantissa_sum_bin
 
     @classmethod
     def div_of_binary_numbers(cls, binary_num_one: str, binary_num_two: str) -> str:
-        def binary_compare(a: str, b: str) -> int:
-            a = a.lstrip('0') or '0'
-            b = b.lstrip('0') or '0'
-            if len(a) > len(b): return 1
-            if len(a) < len(b): return -1
-            return 1 if a > b else 0 if a == b else -1
-
-        def binary_subtract(a: str, b: str) -> str:
-            max_len = max(len(a), len(b))
-            a = a.zfill(max_len)
-            b = b.zfill(max_len)
-            result = []
-            borrow = 0
-            for i in range(max_len - 1, -1, -1):
-                a_bit = int(a[i])
-                b_bit = int(b[i])
-                a_bit -= borrow
-                if a_bit < b_bit:
-                    a_bit += 2
-                    borrow = 1
-                else:
-                    borrow = 0
-                result.append(str(a_bit - b_bit))
-            res = ''.join(reversed(result)).lstrip('0') or '0'
-            return res
-
         if all(c == '0' for c in binary_num_two):
             raise ZeroDivisionError("Деление на ноль")
 
@@ -291,35 +234,61 @@ class Methods:
         dividend = binary_num_one.lstrip('-')
         divisor = binary_num_two.lstrip('-')
 
-        quotient = ''
-        remainder = ''
+        quotient, remainder = '', ''
         precision = 5
 
         for bit in dividend:
             remainder += bit
-            cmp = binary_compare(remainder, divisor)
+            cmp = cls.binary_compare(remainder, divisor)
             if cmp >= 0:
                 quotient += '1'
-                remainder = binary_subtract(remainder, divisor)
+                remainder = cls.binary_subtract(remainder, divisor)
             else:
                 quotient += '0'
 
+        return cls.finalize_division(quotient, remainder, precision, sign, divisor)
+
+    @staticmethod
+    def binary_compare(a: str, b: str) -> int:
+        a = a.lstrip('0') or '0'
+        b = b.lstrip('0') or '0'
+        if len(a) > len(b): return 1
+        if len(a) < len(b): return -1
+        return 1 if a > b else 0 if a == b else -1
+
+    @staticmethod
+    def binary_subtract(a: str, b: str) -> str:
+        max_len = max(len(a), len(b))
+        a = a.zfill(max_len)
+        b = b.zfill(max_len)
+        result, borrow = [], 0
+
+        for i in range(max_len - 1, -1, -1):
+            a_bit = int(a[i]) - borrow
+            b_bit = int(b[i])
+            if a_bit < b_bit:
+                a_bit += 2
+                borrow = 1
+            else:
+                borrow = 0
+            result.append(str(a_bit - b_bit))
+        return ''.join(reversed(result)).lstrip('0') or '0'
+
+    @classmethod
+    def finalize_division(cls, quotient: str, remainder: str, precision: int, sign: str, divisor: str) -> str:
         if remainder != '0' and precision > 0:
             quotient += '.'
             for _ in range(precision):
                 remainder += '0'
-                cmp = binary_compare(remainder, divisor)
+                cmp = cls.binary_compare(remainder, divisor)
                 if cmp >= 0:
                     quotient += '1'
-                    remainder = binary_subtract(remainder, divisor)
+                    remainder = cls.binary_subtract(remainder, divisor)
                 else:
                     quotient += '0'
 
         quotient = quotient.lstrip('0') or '0'
-        if '.' in quotient:
-            quotient = quotient.rstrip('0').rstrip('.') or '0'
-
-        return sign + quotient
+        return sign + (quotient.rstrip('0').rstrip('.') or '0')
 
     @classmethod
     def divide(cls, first: int, second: int) -> float:
@@ -330,7 +299,10 @@ class Methods:
         bin2 = cls.convert_to_binary_number(abs(second))
 
         binary_result = cls.div_of_binary_numbers(bin1, bin2)
+        return cls.convert_binary_to_float(binary_result, first, second)
 
+    @classmethod
+    def convert_binary_to_float(cls, binary_result: str, first: int, second: int) -> float:
         if '.' in binary_result:
             integer_part, fractional_part = binary_result.split('.')
         else:
@@ -338,20 +310,14 @@ class Methods:
             fractional_part = '0'
 
         integer = cls.binary_to_decimal_number(integer_part)
-
-        fractional = 0
-        for i, bit in enumerate(fractional_part, 1):
-            fractional += int(bit) * (2 ** -i)
+        fractional = sum(int(bit) * (2 ** -i) for i, bit in enumerate(fractional_part, 1))
 
         result = integer + fractional
+        return -result if (first < 0) ^ (second < 0) else result
 
-        if (first < 0) ^ (second < 0):
-            return -result
-        return result
 
 def main():
     method = Methods()
-
     print("Сложение:")
     num1 = int(input("Ввод числа №1: "))
     print(f"Число введено: {num1}")
@@ -365,59 +331,33 @@ def main():
     print(f"Обратный код: {method.convert_to_reverse_binary(num2)}")
     print(f"Дополнительный код: {method.convert_to_additional_binary(num2)}")
 
-    # result = method.sum_of_additional_binary(num1, num2)
-    # print(f"Результат: {method.convert_to_decimal(result)}")
-    # print(f"Прямой код: {method.convert_to_binary_number(method.convert_to_decimal(result))}")
-    # print(f"Обратный код: {method.convert_to_reverse_binary(method.convert_to_decimal(result))}")
-    # print(f"Дополнительный код: {method.convert_to_additional_binary(method.convert_to_decimal(result))}")
-    #
-    # print("\nВычитание:")
-    # result = method.subtract_of_additional_binary(num1, num2)
-    # print(f"Результат: {method.convert_to_decimal(result)}")
-    # print(f"Прямой код: {method.convert_to_binary_number(method.convert_to_decimal(result))}")
-    # print(f"Обратный код: {method.convert_to_reverse_binary(method.convert_to_decimal(result))}")
-    # print(f"Дополнительный код: {method.convert_to_additional_binary(method.convert_to_decimal(result))}")
-    #
-    # print("\nУмножение:")
-    # result = method.multi_of_binary_numbers(num1, num2)
-    # print(f"Результат: {result}")
+    result = method.sum_of_additional_binary(num1, num2)
+    print(f"Результат: {method.convert_to_decimal(result)}")
+    print(f"Прямой код: {method.convert_to_binary_number(method.convert_to_decimal(result))}")
+    print(f"Обратный код: {method.convert_to_reverse_binary(method.convert_to_decimal(result))}")
+    print(f"Дополнительный код: {method.convert_to_additional_binary(method.convert_to_decimal(result))}")
+
+    print("\nВычитание:")
+    result = method.subtract_of_additional_binary(num1, num2)
+    print(f"Результат: {method.convert_to_decimal(result)}")
+    print(f"Прямой код: {method.convert_to_binary_number(method.convert_to_decimal(result))}")
+    print(f"Обратный код: {method.convert_to_reverse_binary(method.convert_to_decimal(result))}")
+    print(f"Дополнительный код: {method.convert_to_additional_binary(method.convert_to_decimal(result))}")
+
+    print("\nУмножение:")
+    result = method.multi_of_binary_numbers(num1, num2)
+    print(f"Результат: {result}")
 
     print("\nДеление:")
-    result = method.divide(num1,num2)
+    result = method.divide(num1, num2)
     print(f"Результат: {result}")
 
     print("\nСложение чисел с плавающей точкой:")
     float1 = method.convert_float_to_binary_numbers(float(input("Ввод числа №1: ")))
     float2 = method.convert_float_to_binary_numbers(float(input("Ввод числа №2: ")))
-    method.print_ieee754(float1)
     method.print_ieee754(float2)
-    result = method.sum_of_floats_numbers(method.convert_binary_to_float(float1),
-                                          method.convert_binary_to_float(float2))
-    print(f"Результат: {result}")
-
+    result = method.sum_of_floats_numbers(21.75, 1.125)
+    method.print_ieee754(result)
 
 if __name__ == '__main__':
     main()
-# [name_of_task] Added sum_of_binary_floats
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
