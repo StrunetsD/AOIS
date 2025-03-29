@@ -29,8 +29,8 @@ class KarnaughMapProcessor:
         self.is_conjunctive = is_conjunctive_form
         self.valid_processing = True
         self._map_data = []
-        self.variables = variables  # Сохраняем переменные
-        self.truth_table_rows = truth_table_rows  # Сохраняем сырые данные
+        self.variables = variables
+        self.truth_table_rows = truth_table_rows
 
         if not truth_table_rows:
             self.valid_processing = False
@@ -66,9 +66,8 @@ class KarnaughMapProcessor:
                 (self.variables[0], row[0]),
                 (self.variables[1], row[1])
             ])
-            current_cell['result'] = bool(cell_value)
+            current_cell['result'] = int(cell_value)
 
-    # Аналогично для 3var и 4var
 
     def _initialize_3var_map(self):
         self._map_data = [[{'vars': [], 'result': None, 'processed': False} for _ in range(4)] for _ in range(2)]
@@ -80,7 +79,7 @@ class KarnaughMapProcessor:
             current_cell['vars'].extend([(self.variables[0], row[0]),
                                           (self.variables[1], row[1]),
                                           (self.variables[2], row[2])])
-            current_cell['result'] = bool(cell_value)
+            current_cell['result'] = int(cell_value)
 
     def _initialize_4var_map(self):
         self._map_data = [[{'vars': [], 'result': None, 'processed': False} for _ in range(4)] for _ in range(4)]
@@ -93,7 +92,7 @@ class KarnaughMapProcessor:
                                          (self.variables[1], row[1]),
                                          (self.variables[2], row[2]),
                                          (self.variables[3], row[3])])
-            current_cell['result'] = bool(cell_value)
+            current_cell['result'] = int(cell_value)
 
     def _validate_region(self, start_col, start_row, region_width, region_height):
         has_unprocessed = False
