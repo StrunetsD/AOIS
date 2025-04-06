@@ -188,7 +188,7 @@ class TruthTableData:
 # self.expression = formula.replace('∨', '|').replace(
 #             '∧', '&').replace('→', '->').replace('↔', '~')
 def main():
-    input_expr = "!a→(!(b∨c))"
+    input_expr = "!a→(!(b∨c)∨e)"
     formula = Formula(input_expr)
     truth_table, headers, results = formula.create_table_of_truth()
     variables = headers[:-1]

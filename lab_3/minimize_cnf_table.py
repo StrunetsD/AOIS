@@ -1,7 +1,4 @@
-from itertools import combinations
 from formula import Formula
-
-
 
 class KNF_Optimizer:
     def __init__(self, knf_input):
@@ -9,6 +6,8 @@ class KNF_Optimizer:
         self.disjunctive_terms = self._parse_knf(knf_input)
         self.core_terms = []
         self.optimized_form = []
+        print(f"Исходная КНФ: {self.initial_knf}")
+        print(f"Разобранные термы: {self.disjunctive_terms}")
 
     @staticmethod
     def _parse_knf(knf_str):
@@ -28,10 +27,14 @@ class KNF_Optimizer:
         if len(difference) != 2:
             return False
         var1, var2 = difference
-        return var1 == f'¬{var2}' or var2 == f'¬{var1}'
+        can_combine = var1 == f'¬{var2}' or var2 == f'¬{var1}'
+        print(f"Проверка комбинирования: {term1} и {term2} -> {can_combine}")
+        return can_combine
 
     def _combine_terms(self, term1, term2):
-        return term1.intersection(term2)
+        combined = term1.intersection(term2)
+        print(f"Комбинирование: {term1} и {term2} -> {combined}")
+        return combined
 
     def _filter_redundancies(self):
         essential_terms = []
@@ -42,6 +45,7 @@ class KNF_Optimizer:
                 continue
             essential_terms.append(current_term)
         self.optimized_form = essential_terms
+        print(f"Отфильтрованные термы: {self.optimized_form}")
 
     def _find_core_terms(self):
         current_terms = self.disjunctive_terms.copy()
@@ -60,29 +64,23 @@ class KNF_Optimizer:
                         new_terms.append(combined)
                         used_indices.update((i, j))
 
-            for idx, term in enumerate(current_terms):
-                if idx not in used_indices:
-                    if all(not other.issubset(term) for other in self.core_terms):
-                        self.core_terms.append(term)
-
             if not new_terms:
                 break
 
-            current_terms = new_terms
+            current_terms = [term for idx, term in enumerate(current_terms) if idx not in used_indices]
+            current_terms.extend(new_terms)
 
-        if not self.core_terms:
-            self.core_terms = self.disjunctive_terms.copy()
-
-        self.core_terms = list({frozenset(term) for term in self.core_terms})
+        self.core_terms = list({frozenset(term) for term in current_terms})
+        print(f"Основные термы: {self.core_terms}")
 
     def _build_coverage_matrix(self):
         coverage_map = {}
         for imp in self.core_terms:
             coverage_map[imp] = []
             for term in self.disjunctive_terms:
-                if all(lit in imp or f'¬{lit}' not in imp for lit in term):
+                if imp.issubset(term):
                     coverage_map[imp].append(term)
-
+        print(f"Матрица покрытия: {coverage_map}")
         return {k: v for k, v in coverage_map.items() if v}
 
     def _select_optimal_cover(self):
@@ -111,6 +109,8 @@ class KNF_Optimizer:
             covered_terms.update(coverage[best_imp])
             del coverage[best_imp]
 
+            print(f"Выбранный импликант: {best_imp}, покрытые термы: {covered_terms}")
+
         self._filter_redundancies()
 
     def optimize(self):
@@ -128,7 +128,9 @@ class KNF_Optimizer:
         for term in terms:
             parts = sorted(term, key=lambda x: (x.startswith('¬'), x))
             simplified.append(" ∨ ".join(parts))
-        return " ∧ ".join(f'({t})' for t in simplified) if len(simplified) > 1 else simplified[0]
+        result = " ∧ ".join(f'({t})' for t in simplified) if len(simplified) > 1 else simplified[0]
+        print(f"Оптимизированная КНФ: {result}")
+        return result
 
     def display_coverage_matrix(self):
         coverage = self._build_coverage_matrix()
@@ -153,7 +155,7 @@ class KNF_Optimizer:
             print(separator)
 
 def main():
-    expr = "!a→(!(b∨c)∨d)"
+    expr = "a∧b∧c∧d∨e"
     bool_expr = Formula(expr)
     knf = bool_expr.to_cnf()
     print("Исходная КНФ:", knf)

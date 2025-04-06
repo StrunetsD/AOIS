@@ -123,7 +123,7 @@ class DNFMinimizer:
                     print(f"  {t1_str}  и  {t2_str} → {merged_str}")
 
 def main():
-    expr = ('!a→(!(b∨c)∨d)')
+    expr = ('!(a→(b∧!c))')
     formula = Formula(expr)
     print(f"Логическое выражение: {expr}")
     dnf = formula.get_dnf_for_minimization()

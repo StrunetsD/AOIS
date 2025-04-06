@@ -149,7 +149,7 @@ class PerfectDNF_Optimizer:
 
 
 def main():
-    expression = "!a→(!(b∨c)∨d)"
+    expression = "!(a→(b∧!c))"
     bool_expr = Formula(expression)
     dnf_form = bool_expr.to_dnf()
     optimizer = PerfectDNF_Optimizer(dnf_form)
