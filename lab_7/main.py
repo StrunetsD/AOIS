@@ -44,7 +44,7 @@ class DiagonalMatrix:
     def F12(a, b):  # Отрицание первого аргумента
         return not a
 
-    def closest_word_find(self, input_word: str, is_greater: bool = True):
+    def closest_word_find(self, input_word, is_greater = True):
         if len(input_word) != self.rows:
             raise ValueError(f"Входное слово должно быть длиной {self.rows} бит.")
 
@@ -68,7 +68,7 @@ class DiagonalMatrix:
         return closest_word, closest_index
 
     @staticmethod
-    def _compare_words(input_word: str, stored_word: str, is_greater: bool) -> bool:
+    def _compare_words(input_word, stored_word, is_greater):
         greater = False
         less = False
 
@@ -83,7 +83,7 @@ class DiagonalMatrix:
         return greater if is_greater else less
 
     @staticmethod
-    def _is_closer(input_word: str, word1: str, word2: str, is_greater: bool) -> bool:
+    def _is_closer(input_word, word1, word2, is_greater):
         def hamming_distance(w1, w2):
             return sum(bit1 != bit2 for bit1, bit2 in zip(w1, w2))
 
