@@ -4,7 +4,7 @@ class DiagonalMatrix:
         self.cols = cols
         self.matrix = [[0 for _ in range(cols)] for _ in range(rows)]
 
-    def get_column(self, col):
+    def get_col(self, col):
         return [row[col] for row in self.matrix]
 
     def set_word(self, word, start_row, col):
@@ -12,8 +12,8 @@ class DiagonalMatrix:
             self.matrix[(start_row + i) % self.rows][col] = val
 
     def operation(self, col1, col2, static_func):
-        word1 = self.get_column(col1)
-        word2 = self.get_column(col2)
+        word1 = self.get_col(col1)
+        word2 = self.get_col(col2)
         return [int(static_func(bool(word1[i]), bool(word2[i]))) for i in range(self.rows)]
 
     def F1_operation(self, col1, col2): # Логическое И
@@ -137,8 +137,8 @@ def main():
 
     for col1, col2 in test_columns:
         print(f"\nОперации над столбцами {col1} и {col2}:")
-        print(f"Столбец {col1}: {dm.get_column(col1)[:5]}...")
-        print(f"Столбец {col2}: {dm.get_column(col2)[:5]}...")
+        print(f"Столбец {col1}: {dm.get_col(col1)[:5]}...")
+        print(f"Столбец {col2}: {dm.get_col(col2)[:5]}...")
 
         print(f"F1 (И): {dm.F1_operation(col1, col2)[:5]}...")
         print(f"F14 (NAND): {dm.F14_operation(col1, col2)[:5]}...")
